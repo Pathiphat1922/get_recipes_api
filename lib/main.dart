@@ -9,88 +9,151 @@ void main() {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Products',
+      title: 'Weather',
       theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // TRY THIS: Try running your application with "flutter run". You'll see
-        // the application has a purple toolbar. Then, without quitting the app,
-        // try changing the seedColor in the colorScheme below to Colors.green
-        // and then invoke "hot reload" (save your changes or press the "hot
-        // reload" button in a Flutter-supported IDE, or press "r" if you used
-        // the command line to start the app).
-        //
-        // Notice that the counter didn't reset back to zero; the application
-        // state is not lost during the reload. To reset the state, use hot
-        // restart instead.
-        //
-        // This works for code too, not just values: Most code changes can be
-        // tested with just a hot reload.
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.white),
       ),
-      home: ProductsScreen(),
+      home: WeatherScreen(),
       debugShowCheckedModeBanner: false,
     );
   }
 }
 
-class Product {
-  final int id;
-  final String title;
-  final String description;
-  final double price;
-  final double rating;
-  final String thumbnail;
-  final String brand;
-  final int stock;
+class Weather {
+  final double temperature;
+  final double windspeed;
+  final int weathercode;
+  final String time;
 
-  Product({
-    required this.id,
-    required this.title,
-    required this.description,
-    required this.price,
-    required this.rating,
-    required this.thumbnail,
-    required this.brand,
-    required this.stock,
+  Weather({
+    required this.temperature,
+    required this.windspeed,
+    required this.weathercode,
+    required this.time,
   });
 
-  factory Product.fromJson(Map<String, dynamic> json) {
-    return Product(
-      id: json['id'],
-      title: json['title'],
-      description: json['description'],
-      price: json['price'].toDouble(),
-      rating: json['rating'].toDouble(),
-      thumbnail: json['thumbnail'],
-      brand: json['brand'] ?? 'Unknown',
-      stock: json['stock'],
+  factory Weather.fromJson(Map<String, dynamic> json) {
+    return Weather(
+      temperature: (json['temperature'] as num).toDouble(),
+      windspeed: (json['windspeed'] as num).toDouble(),
+      weathercode: json['weathercode'] as int,
+      time: json['time'] as String,
     );
   }
-}
 
-class ProductsService {
-  static const String apiUrl = 'https://dummyjson.com/products';
+  String get weatherDescription {
+    switch (weathercode) {
+      case 0:
+        return 'Clear sky';
+      case 1:
+      case 2:
+      case 3:
+        return 'Mainly clear, partly cloudy, and overcast';
+      case 45:
+      case 48:
+        return 'Fog and depositing rime fog';
+      case 51:
+      case 53:
+      case 55:
+        return 'Drizzle: Light, moderate, and dense intensity';
+      case 61:
+      case 63:
+      case 65:
+        return 'Rain: Slight, moderate and heavy intensity';
+      case 80:
+      case 81:
+      case 82:
+        return 'Rain showers: Slight, moderate, and violent';
+      default:
+        return 'Unknown';
+    }
+  }
 
-  static Future<List<Product>> fetchProducts() async {
-    final response = await http.get(Uri.parse(apiUrl));
-
-    if (response.statusCode == 200) {
-      final data = json.decode(response.body);
-      final List<dynamic> productsJson = data['products'];
-      return productsJson.map((json) => Product.fromJson(json)).toList();
+  String get iconUrl {
+    if (weathercode == 0) {
+      return 'https://cdn-icons-png.flaticon.com/512/869/869869.png';
+    } else if ([1, 2, 3].contains(weathercode)) {
+      return 'https://cdn-icons-png.flaticon.com/512/1163/1163661.png';
+    } else if ([45, 48].contains(weathercode)) {
+      return 'https://cdn-icons-png.flaticon.com/512/4005/4005901.png';
+    } else if ([51, 53, 55].contains(weathercode)) {
+      return 'https://cdn-icons-png.flaticon.com/512/414/414974.png';
+    } else if ([61, 63, 65].contains(weathercode)) {
+      return 'https://cdn-icons-png.flaticon.com/512/3313/3313887.png';
+    } else if ([80, 81, 82].contains(weathercode)) {
+      return 'https://cdn-icons-png.flaticon.com/512/1779/1779940.png';
     } else {
-      throw Exception('Failed to load products');
+      return 'https://cdn-icons-png.flaticon.com/512/869/869869.png';
     }
   }
 }
 
-class ProductsScreen extends StatelessWidget {
-  const ProductsScreen({super.key});
+class WeatherLocation {
+  final String name;
+  final double lat;
+  final double lon;
+
+  WeatherLocation({required this.name, required this.lat, required this.lon});
+}
+
+class WeatherService {
+  static const String apiUrl =
+      'https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}&current_weather=true';
+
+  static Future<Weather> fetchWeather(double lat, double lon) async {
+    final url = apiUrl
+        .replaceFirst('{lat}', lat.toString())
+        .replaceFirst('{lon}', lon.toString());
+    final response = await http.get(Uri.parse(url));
+
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      final current = data['current_weather'];
+      return Weather(
+        temperature: (current['temperature'] as num).toDouble(),
+        windspeed: (current['windspeed'] as num).toDouble(),
+        weathercode: current['weathercode'] as int,
+        time: current['time'] as String,
+      );
+    } else {
+      throw Exception('Failed to load weather');
+    }
+  }
+
+  static Future<List<WeatherWithLocation>> fetchWeatherForLocations(List<WeatherLocation> locations) async {
+    List<WeatherWithLocation> result = [];
+    for (final loc in locations) {
+      try {
+        final weather = await fetchWeather(loc.lat, loc.lon);
+        result.add(WeatherWithLocation(location: loc, weather: weather));
+      } catch (_) {
+        // ถ้า error ให้ข้ามหรือจะใส่ error message ก็ได้
+      }
+    }
+    return result;
+  }
+}
+
+class WeatherWithLocation {
+  final WeatherLocation location;
+  final Weather weather;
+
+  WeatherWithLocation({required this.location, required this.weather});
+}
+
+class WeatherScreen extends StatelessWidget {
+  const WeatherScreen({super.key});
+
+  static final List<WeatherLocation> locations = [
+    WeatherLocation(name: 'San Francisco', lat: 37.7749, lon: -122.4194),
+    WeatherLocation(name: 'Bangkok', lat: 13.7563, lon: 100.5018),
+    WeatherLocation(name: 'Tokyo', lat: 35.6895, lon: 139.6917),
+    WeatherLocation(name: 'London', lat: 51.5074, lon: -0.1278),
+    WeatherLocation(name: 'Sydney', lat: -33.8688, lon: 151.2093),
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -100,7 +163,7 @@ class ProductsScreen extends StatelessWidget {
         elevation: 0,
         backgroundColor: Colors.white,
         title: Text(
-          'Products',
+          'Weather',
           style: TextStyle(
             color: Colors.black87,
             fontSize: 24,
@@ -109,8 +172,8 @@ class ProductsScreen extends StatelessWidget {
         ),
         centerTitle: true,
       ),
-      body: FutureBuilder<List<Product>>(
-        future: ProductsService.fetchProducts(),
+      body: FutureBuilder<List<WeatherWithLocation>>(
+        future: WeatherService.fetchWeatherForLocations(locations),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return Center(
@@ -146,7 +209,7 @@ class ProductsScreen extends StatelessWidget {
           if (!snapshot.hasData || snapshot.data!.isEmpty) {
             return Center(
               child: Text(
-                'ไม่พบข้อมูลสินค้า',
+                'ไม่พบข้อมูลสภาพอากาศ',
                 style: TextStyle(fontSize: 16, color: Colors.grey[600]),
               ),
             );
@@ -156,8 +219,11 @@ class ProductsScreen extends StatelessWidget {
             padding: EdgeInsets.all(16),
             itemCount: snapshot.data!.length,
             itemBuilder: (context, index) {
-              final product = snapshot.data![index];
-              return ProductCard(product: product);
+              final weatherWithLoc = snapshot.data![index];
+              return WeatherCard(
+                weather: weatherWithLoc.weather,
+                locationName: weatherWithLoc.location.name,
+              );
             },
           );
         },
@@ -166,10 +232,11 @@ class ProductsScreen extends StatelessWidget {
   }
 }
 
-class ProductCard extends StatelessWidget {
-  final Product product;
+class WeatherCard extends StatelessWidget {
+  final Weather weather;
+  final String? locationName;
 
-  const ProductCard({super.key, required this.product});
+  const WeatherCard({super.key, required this.weather, this.locationName});
 
   @override
   Widget build(BuildContext context) {
@@ -193,11 +260,11 @@ class ProductCard extends StatelessWidget {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // Product Image
+              // Weather Icon
               Container(
                 width: 120,
                 child: Image.network(
-                  product.thumbnail,
+                  weather.iconUrl,
                   fit: BoxFit.cover,
                   errorBuilder: (context, error, stackTrace) {
                     return Container(
@@ -225,7 +292,7 @@ class ProductCard extends StatelessWidget {
                   },
                 ),
               ),
-              // Product Info
+              // Weather Info
               Expanded(
                 child: Padding(
                   padding: EdgeInsets.all(16),
@@ -233,107 +300,54 @@ class ProductCard extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
+                      if (locationName != null) ...[
+                        Text(
+                          locationName!,
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black87,
+                          ),
+                        ),
+                        SizedBox(height: 8),
+                      ],
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            product.title,
+                            weather.weatherDescription,
                             style: TextStyle(
-                              fontSize: 16,
+                              fontSize: 18,
                               fontWeight: FontWeight.w600,
                               color: Colors.black87,
                             ),
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
                           ),
-                          SizedBox(height: 4),
+                          SizedBox(height: 8),
                           Text(
-                            product.brand,
+                            'Temperature: ${weather.temperature.toStringAsFixed(1)} °C',
                             style: TextStyle(
-                              fontSize: 12,
+                              fontSize: 15,
                               color: Colors.blue,
                               fontWeight: FontWeight.w500,
                             ),
                           ),
                           SizedBox(height: 8),
                           Text(
-                            product.description,
+                            'Windspeed: ${weather.windspeed.toStringAsFixed(1)} km/h',
                             style: TextStyle(
                               fontSize: 13,
                               color: Colors.grey[600],
                               height: 1.3,
                             ),
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
                           ),
-                        ],
-                      ),
-                      SizedBox(height: 12),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                '\$${product.price.toStringAsFixed(2)}',
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.w700,
-                                  color: Colors.black87,
-                                ),
-                              ),
-                              SizedBox(height: 4),
-                              Row(
-                                children: [
-                                  Icon(
-                                    Icons.star,
-                                    size: 14,
-                                    color: Colors.amber,
-                                  ),
-                                  SizedBox(width: 4),
-                                  Text(
-                                    '${product.rating.toStringAsFixed(1)}',
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      color: Colors.grey[600],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                          Container(
-                            padding: EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 4,
-                            ),
-                            decoration: BoxDecoration(
-                              color:
-                                  product.stock > 0
-                                      ? Colors.green[50]
-                                      : Colors.red[50],
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(
-                                color:
-                                    product.stock > 0
-                                        ? Colors.green[200]!
-                                        : Colors.red[200]!,
-                                width: 1,
-                              ),
-                            ),
-                            child: Text(
-                              product.stock > 0
-                                  ? 'Stock: ${product.stock}'
-                                  : 'Out of stock',
-                              style: TextStyle(
-                                fontSize: 11,
-                                color:
-                                    product.stock > 0
-                                        ? Colors.green[700]
-                                        : Colors.red[700],
-                                fontWeight: FontWeight.w500,
-                              ),
+                          SizedBox(height: 8),
+                          Text(
+                            'Time: ${weather.time}',
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: Colors.grey[600],
                             ),
                           ),
                         ],
@@ -349,3 +363,4 @@ class ProductCard extends StatelessWidget {
     );
   }
 }
+
