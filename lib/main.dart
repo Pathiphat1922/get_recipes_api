@@ -217,7 +217,7 @@ class WeatherService {
   }
 }
 
-// Weather Detail Screen (ใช้แทน import)
+// Weather Detail Screen (ใช้แทน import) - แก้ไข overflow
 class WeatherDetailScreen extends StatefulWidget {
   final WeatherWithLocation weatherWithLocation;
   final VoidCallback? onFavoriteToggle;
@@ -319,42 +319,43 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen>
     Color color,
   ) {
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(16), // ลดจาก 20 เป็น 16
       decoration: BoxDecoration(
         color: Colors.white.withOpacity(0.9),
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(16), // ลดจาก 20 เป็น 16
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.1),
-            blurRadius: 10,
-            offset: const Offset(0, 5),
+            blurRadius: 8, // ลดจาก 10 เป็น 8
+            offset: const Offset(0, 4), // ลดจาก 5 เป็น 4
           ),
         ],
       ),
       child: Column(
+        mainAxisSize: MainAxisSize.min, // เพิ่ม
         children: [
           Container(
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.all(10), // ลดจาก 12 เป็น 10
             decoration: BoxDecoration(
               color: color.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(15),
+              borderRadius: BorderRadius.circular(12), // ลดจาก 15 เป็น 12
             ),
-            child: Icon(icon, size: 30, color: color),
+            child: Icon(icon, size: 26, color: color), // ลดจาก 30 เป็น 26
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 8), // ลดจาก 12 เป็น 8
           Text(
             title,
             style: TextStyle(
-              fontSize: 14,
+              fontSize: 13, // ลดจาก 14 เป็น 13
               color: Colors.grey[600],
               fontWeight: FontWeight.w500,
             ),
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: 2), // ลดจาก 4 เป็น 2
           Text(
             value,
             style: const TextStyle(
-              fontSize: 18,
+              fontSize: 16, // ลดจาก 18 เป็น 16
               fontWeight: FontWeight.bold,
               color: Color(0xFF424242),
             ),
@@ -379,341 +380,352 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen>
           ),
         ),
         child: SafeArea(
-          child: SingleChildScrollView(
-            child: Padding(
-              padding: const EdgeInsets.all(20),
-              child: AnimatedBuilder(
-                animation: _fadeAnimation,
-                builder: (context, child) {
-                  return Opacity(
-                    opacity: _fadeAnimation.value,
-                    child: Column(
-                      children: [
-                        // Custom App Bar
-                        Row(
-                          children: [
-                            Container(
-                              decoration: BoxDecoration(
-                                color: Colors.white.withOpacity(0.2),
-                                borderRadius: BorderRadius.circular(15),
-                              ),
-                              child: IconButton(
-                                onPressed: () => Navigator.pop(context),
-                                icon: const Icon(
-                                  Icons.arrow_back,
-                                  color: Colors.white,
-                                ),
-                              ),
-                            ),
-                            const Spacer(),
-                            Container(
-                              decoration: BoxDecoration(
-                                color: Colors.white.withOpacity(0.2),
-                                borderRadius: BorderRadius.circular(15),
-                              ),
-                              child: IconButton(
-                                onPressed: () {
-                                  setState(() {
-                                    widget.weatherWithLocation.isFavorite =
-                                        !widget.weatherWithLocation.isFavorite;
-                                  });
-                                  widget.onFavoriteToggle?.call();
-                                },
-                                icon: Icon(
-                                  widget.weatherWithLocation.isFavorite
-                                      ? Icons.favorite
-                                      : Icons.favorite_border,
-                                  color:
-                                      widget.weatherWithLocation.isFavorite
-                                          ? Colors.red[300]
-                                          : Colors.white,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 40),
-
-                        // Main Weather Display
-                        ScaleTransition(
-                          scale: _scaleAnimation,
-                          child: Container(
-                            width: double.infinity,
-                            padding: const EdgeInsets.all(30),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.15),
-                              borderRadius: BorderRadius.circular(30),
-                              border: Border.all(
-                                color: Colors.white.withOpacity(0.2),
-                                width: 1,
-                              ),
-                            ),
-                            child: Column(
-                              children: [
-                                // Location
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Text(
-                                      location.emoji,
-                                      style: const TextStyle(fontSize: 32),
+          child: LayoutBuilder( // เพิ่ม LayoutBuilder เพื่อจัดการขนาดหน้าจอ
+            builder: (context, constraints) {
+              return SingleChildScrollView(
+                physics: const ClampingScrollPhysics(), // เปลี่ยนจาก default
+                child: ConstrainedBox( // เพิ่ม ConstrainedBox
+                  constraints: BoxConstraints(
+                    minHeight: constraints.maxHeight,
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16), // ลดจาก 20 เป็น 16
+                    child: AnimatedBuilder(
+                      animation: _fadeAnimation,
+                      builder: (context, child) {
+                        return Opacity(
+                          opacity: _fadeAnimation.value,
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min, // เพิ่ม
+                            children: [
+                              // Custom App Bar
+                              Row(
+                                children: [
+                                  Container(
+                                    decoration: BoxDecoration(
+                                      color: Colors.white.withOpacity(0.2),
+                                      borderRadius: BorderRadius.circular(15),
                                     ),
-                                    const SizedBox(width: 12),
-                                    Flexible(
-                                      child: Text(
-                                        location.name,
+                                    child: IconButton(
+                                      onPressed: () => Navigator.pop(context),
+                                      icon: const Icon(
+                                        Icons.arrow_back,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                  ),
+                                  const Spacer(),
+                                  Container(
+                                    decoration: BoxDecoration(
+                                      color: Colors.white.withOpacity(0.2),
+                                      borderRadius: BorderRadius.circular(15),
+                                    ),
+                                    child: IconButton(
+                                      onPressed: () {
+                                        setState(() {
+                                          widget.weatherWithLocation.isFavorite =
+                                              !widget.weatherWithLocation.isFavorite;
+                                        });
+                                        widget.onFavoriteToggle?.call();
+                                      },
+                                      icon: Icon(
+                                        widget.weatherWithLocation.isFavorite
+                                            ? Icons.favorite
+                                            : Icons.favorite_border,
+                                        color:
+                                            widget.weatherWithLocation.isFavorite
+                                                ? Colors.red[300]
+                                                : Colors.white,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 24), // ลดจาก 40 เป็น 24
+
+                              // Main Weather Display
+                              ScaleTransition(
+                                scale: _scaleAnimation,
+                                child: Container(
+                                  width: double.infinity,
+                                  padding: const EdgeInsets.all(24), // ลดจาก 30 เป็น 24
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withOpacity(0.15),
+                                    borderRadius: BorderRadius.circular(24), // ลดจาก 30 เป็น 24
+                                    border: Border.all(
+                                      color: Colors.white.withOpacity(0.2),
+                                      width: 1,
+                                    ),
+                                  ),
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min, // เพิ่ม
+                                    children: [
+                                      // Location
+                                      Row(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        children: [
+                                          Text(
+                                            location.emoji,
+                                            style: const TextStyle(fontSize: 28), // ลดจาก 32 เป็น 28
+                                          ),
+                                          const SizedBox(width: 12),
+                                          Flexible(
+                                            child: Text(
+                                              location.name,
+                                              style: const TextStyle(
+                                                fontSize: 24, // ลดจาก 28 เป็น 24
+                                                fontWeight: FontWeight.bold,
+                                                color: Colors.white,
+                                              ),
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      const SizedBox(height: 16), // ลดจาก 20 เป็น 16
+
+                                      // Weather Icon
+                                      AnimatedBuilder(
+                                        animation: _iconRotateAnimation,
+                                        builder: (context, child) {
+                                          return Transform.rotate(
+                                            angle: _iconRotateAnimation.value * 0.1,
+                                            child: Container(
+                                              width: 100, // ลดจาก 120 เป็น 100
+                                              height: 100, // ลดจาก 120 เป็น 100
+                                              decoration: BoxDecoration(
+                                                color: Colors.white.withOpacity(0.2),
+                                                borderRadius: BorderRadius.circular(20),
+                                              ),
+                                              child: Icon(
+                                                weather.weatherIcon,
+                                                size: 50, // ลดจาก 60 เป็น 50
+                                                color: Colors.white,
+                                              ),
+                                            ),
+                                          );
+                                        },
+                                      ),
+                                      const SizedBox(height: 16), // ลดจาก 20 เป็น 16
+
+                                      // Temperature
+                                      Text(
+                                        '${weather.temperature.toStringAsFixed(1)}°C',
                                         style: const TextStyle(
-                                          fontSize: 28,
+                                          fontSize: 40, // ลดจาก 48 เป็น 40
                                           fontWeight: FontWeight.bold,
                                           color: Colors.white,
                                         ),
-                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                      const SizedBox(height: 8),
+
+                                      // Weather Description
+                                      Text(
+                                        weather.weatherDescription,
+                                        style: const TextStyle(
+                                          fontSize: 16, // ลดจาก 18 เป็น 16
+                                          color: Colors.white70,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+
+                              const SizedBox(height: 20), // ลดจาก 30 เป็น 20
+
+                              // Weather Details Grid
+                              GridView.count(
+                                shrinkWrap: true,
+                                physics: const NeverScrollableScrollPhysics(),
+                                crossAxisCount: 2,
+                                crossAxisSpacing: 12, // ลดจาก 15 เป็น 12
+                                mainAxisSpacing: 12, // ลดจาก 15 เป็น 12
+                                childAspectRatio: 1.2, // เพิ่มจาก 1.1 เป็น 1.2 เพื่อให้สั้นลง
+                                children: [
+                                  _buildInfoCard(
+                                    Icons.thermostat,
+                                    'Temperature',
+                                    '${weather.temperature.toStringAsFixed(1)}°C',
+                                    weather.temperatureColor,
+                                  ),
+                                  _buildInfoCard(
+                                    Icons.air,
+                                    'Wind Speed',
+                                    '${weather.windspeed.toStringAsFixed(1)} km/h',
+                                    const Color(0xFF64B5F6),
+                                  ),
+                                  _buildInfoCard(
+                                    Icons.code,
+                                    'Weather Code',
+                                    weather.weathercode.toString(),
+                                    const Color(0xFF9C27B0),
+                                  ),
+                                  _buildInfoCard(
+                                    Icons.access_time,
+                                    'Last Updated',
+                                    weather.time.substring(11, 16),
+                                    const Color(0xFF4CAF50),
+                                  ),
+                                ],
+                              ),
+
+                              const SizedBox(height: 16), // ลดจาก 20 เป็น 16
+
+                              // Detailed Description
+                              Container(
+                                width: double.infinity,
+                                padding: const EdgeInsets.all(16), // ลดจาก 20 เป็น 16
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withOpacity(0.9),
+                                  borderRadius: BorderRadius.circular(16), // ลดจาก 20 เป็น 16
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withOpacity(0.1),
+                                      blurRadius: 8, // ลดจาก 10 เป็น 8
+                                      offset: const Offset(0, 4), // ลดจาก 5 เป็น 4
+                                    ),
+                                  ],
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  mainAxisSize: MainAxisSize.min, // เพิ่ม
+                                  children: [
+                                    const Row(
+                                      children: [
+                                        Icon(
+                                          Icons.info_outline,
+                                          color: Color(0xFF2196F3),
+                                          size: 22, // ลดจาก 24 เป็น 22
+                                        ),
+                                        SizedBox(width: 8),
+                                        Text(
+                                          'Weather Details',
+                                          style: TextStyle(
+                                            fontSize: 16, // ลดจาก 18 เป็น 16
+                                            fontWeight: FontWeight.bold,
+                                            color: Color(0xFF424242),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 8), // ลดจาก 12 เป็น 8
+                                    Text(
+                                      _getDetailedDescription(),
+                                      style: TextStyle(
+                                        fontSize: 13, // ลดจาก 14 เป็น 13
+                                        color: Colors.grey[700],
+                                        height: 1.4, // ลดจาก 1.5 เป็น 1.4
                                       ),
                                     ),
                                   ],
                                 ),
-                                const SizedBox(height: 20),
-
-                                // Weather Icon
-                                AnimatedBuilder(
-                                  animation: _iconRotateAnimation,
-                                  builder: (context, child) {
-                                    return Transform.rotate(
-                                      angle: _iconRotateAnimation.value * 0.1,
-                                      child: Container(
-                                        width: 120,
-                                        height: 120,
-                                        decoration: BoxDecoration(
-                                          color: Colors.white.withOpacity(0.2),
-                                          borderRadius: BorderRadius.circular(
-                                            25,
-                                          ),
-                                        ),
-                                        child: Icon(
-                                          weather.weatherIcon,
-                                          size: 60,
-                                          color: Colors.white,
-                                        ),
-                                      ),
-                                    );
-                                  },
-                                ),
-                                const SizedBox(height: 20),
-
-                                // Temperature
-                                Text(
-                                  '${weather.temperature.toStringAsFixed(1)}°C',
-                                  style: const TextStyle(
-                                    fontSize: 48,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                                const SizedBox(height: 8),
-
-                                // Weather Description
-                                Text(
-                                  weather.weatherDescription,
-                                  style: const TextStyle(
-                                    fontSize: 18,
-                                    color: Colors.white70,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-
-                        const SizedBox(height: 30),
-
-                        // Weather Details Grid
-                        GridView.count(
-                          shrinkWrap: true,
-                          physics: const NeverScrollableScrollPhysics(),
-                          crossAxisCount: 2,
-                          crossAxisSpacing: 15,
-                          mainAxisSpacing: 15,
-                          childAspectRatio: 1.1,
-                          children: [
-                            _buildInfoCard(
-                              Icons.thermostat,
-                              'Temperature',
-                              '${weather.temperature.toStringAsFixed(1)}°C',
-                              weather.temperatureColor,
-                            ),
-                            _buildInfoCard(
-                              Icons.air,
-                              'Wind Speed',
-                              '${weather.windspeed.toStringAsFixed(1)} km/h',
-                              const Color(0xFF64B5F6),
-                            ),
-                            _buildInfoCard(
-                              Icons.code,
-                              'Weather Code',
-                              weather.weathercode.toString(),
-                              const Color(0xFF9C27B0),
-                            ),
-                            _buildInfoCard(
-                              Icons.access_time,
-                              'Last Updated',
-                              weather.time.substring(11, 16),
-                              const Color(0xFF4CAF50),
-                            ),
-                          ],
-                        ),
-
-                        const SizedBox(height: 20),
-
-                        // Detailed Description
-                        Container(
-                          width: double.infinity,
-                          padding: const EdgeInsets.all(20),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.9),
-                            borderRadius: BorderRadius.circular(20),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.1),
-                                blurRadius: 10,
-                                offset: const Offset(0, 5),
                               ),
-                            ],
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Row(
-                                children: [
-                                  Icon(
-                                    Icons.info_outline,
-                                    color: Color(0xFF2196F3),
-                                    size: 24,
-                                  ),
-                                  SizedBox(width: 8),
-                                  Text(
-                                    'Weather Details',
-                                    style: TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.bold,
-                                      color: Color(0xFF424242),
+
+                              const SizedBox(height: 16), // ลดจาก 20 เป็น 16
+
+                              // Coordinates
+                              Container(
+                                width: double.infinity,
+                                padding: const EdgeInsets.all(16), // ลดจาก 20 เป็น 16
+                                margin: const EdgeInsets.only(bottom: 16), // เพิ่ม margin ด้านล่าง
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withOpacity(0.9),
+                                  borderRadius: BorderRadius.circular(16), // ลดจาก 20 เป็น 16
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withOpacity(0.1),
+                                      blurRadius: 8, // ลดจาก 10 เป็น 8
+                                      offset: const Offset(0, 4), // ลดจาก 5 เป็น 4
                                     ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 12),
-                              Text(
-                                _getDetailedDescription(),
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: Colors.grey[700],
-                                  height: 1.5,
+                                  ],
                                 ),
-                              ),
-                            ],
-                          ),
-                        ),
-
-                        const SizedBox(height: 20),
-
-                        // Coordinates
-                        Container(
-                          width: double.infinity,
-                          padding: const EdgeInsets.all(20),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.9),
-                            borderRadius: BorderRadius.circular(20),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.1),
-                                blurRadius: 10,
-                                offset: const Offset(0, 5),
-                              ),
-                            ],
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Row(
-                                children: [
-                                  Icon(
-                                    Icons.place,
-                                    color: Color(0xFF4CAF50),
-                                    size: 24,
-                                  ),
-                                  SizedBox(width: 8),
-                                  Text(
-                                    'Location',
-                                    style: TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.bold,
-                                      color: Color(0xFF424242),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 12),
-                              Row(
-                                children: [
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  mainAxisSize: MainAxisSize.min, // เพิ่ม
+                                  children: [
+                                    const Row(
                                       children: [
-                                        Text(
-                                          'Latitude',
-                                          style: TextStyle(
-                                            fontSize: 12,
-                                            color: Colors.grey[600],
-                                          ),
+                                        Icon(
+                                          Icons.place,
+                                          color: Color(0xFF4CAF50),
+                                          size: 22, // ลดจาก 24 เป็น 22
                                         ),
+                                        SizedBox(width: 8),
                                         Text(
-                                          location.lat.toStringAsFixed(4),
-                                          style: const TextStyle(
-                                            fontSize: 16,
+                                          'Location',
+                                          style: TextStyle(
+                                            fontSize: 16, // ลดจาก 18 เป็น 16
                                             fontWeight: FontWeight.bold,
                                             color: Color(0xFF424242),
                                           ),
                                         ),
                                       ],
                                     ),
-                                  ),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
+                                    const SizedBox(height: 8), // ลดจาก 12 เป็น 8
+                                    Row(
                                       children: [
-                                        Text(
-                                          'Longitude',
-                                          style: TextStyle(
-                                            fontSize: 12,
-                                            color: Colors.grey[600],
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                'Latitude',
+                                                style: TextStyle(
+                                                  fontSize: 11, // ลดจาก 12 เป็น 11
+                                                  color: Colors.grey[600],
+                                                ),
+                                              ),
+                                              Text(
+                                                location.lat.toStringAsFixed(4),
+                                                style: const TextStyle(
+                                                  fontSize: 14, // ลดจาก 16 เป็น 14
+                                                  fontWeight: FontWeight.bold,
+                                                  color: Color(0xFF424242),
+                                                ),
+                                              ),
+                                            ],
                                           ),
                                         ),
-                                        Text(
-                                          location.lon.toStringAsFixed(4),
-                                          style: const TextStyle(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.bold,
-                                            color: Color(0xFF424242),
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                'Longitude',
+                                                style: TextStyle(
+                                                  fontSize: 11, // ลดจาก 12 เป็น 11
+                                                  color: Colors.grey[600],
+                                                ),
+                                              ),
+                                              Text(
+                                                location.lon.toStringAsFixed(4),
+                                                style: const TextStyle(
+                                                  fontSize: 14, // ลดจาก 16 เป็น 14
+                                                  fontWeight: FontWeight.bold,
+                                                  color: Color(0xFF424242),
+                                                ),
+                                              ),
+                                            ],
                                           ),
                                         ),
                                       ],
                                     ),
-                                  ),
-                                ],
+                                  ],
+                                ),
                               ),
                             ],
                           ),
-                        ),
-
-                        const SizedBox(height: 20),
-                      ],
+                        );
+                      },
                     ),
-                  );
-                },
-              ),
-            ),
+                  ),
+                ),
+              );
+            },
           ),
         ),
       ),
